@@ -1,5 +1,5 @@
 /*
- * jQuery Calculadora 0.3
+ * jQuery Calculadora 0.4
  * Copyright 2013, Eduardo Molteni
  *
 */
@@ -131,7 +131,7 @@
             }
 
             function formatNumber(n, c) {
-                var d = "."; var t = ",";
+                var d = "."; var t = ","; var i; var j; var s;
                 if (options.useCommaAsDecimalMark) {
                     d = ","; t = ".";
                 }
