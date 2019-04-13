@@ -1,5 +1,5 @@
 /*
- * jQuery Calculadora 0.4
+ * jQuery Calculadora 0.5
  * Copyright 2013, Eduardo Molteni
  *
 */
@@ -7,20 +7,28 @@
 (function ($) {
     var defaults = {
         decimals: 2,
-        useCommaAsDecimalMark: false
+        useCommaAsDecimalMark: false,
+        parent_element: $("body"),
     };
 
     $.fn.extend({
         calculadora: function(options) {
-        
-            var options = $.extend({}, defaults, options);        
+            var options = $.extend({}, defaults, options);
+
+            if(!options.numberFormat){
+            	options.numberFormat = (options.useCommaAsDecimalMark) ?
+            		new Intl.NumberFormat('FR', {maximumFractionDigits: options.decimals}) :
+            		new Intl.NumberFormat('US', {maximumFractionDigits: options.decimals});
+            };
+            var conf = {};
+        	conf.radix = options.numberFormat.format(0.1).slice(1,2);
+        	conf.re = new RegExp(`[^-0-9${conf.radix}]`, 'g');
         
             var ticket = $('<div id="calculadora" style="display: none; position: absolute"><ul></ul></div>');
             var ticketUl = ticket.find("ul");
-            $("body").append(ticket);
+            $(options.parent_element).append(ticket);
             
             return this.each(function() {
-                var o = options;
                 var self = $(this);
                 var LastOperator = 0;
                 var TotalSoFar = 0;
@@ -33,7 +41,7 @@
                     TicketIsVisible = false;
 
                     var number = parseLocalFloat(self.val());
-                    self.val(formatNumber(number, o.decimals));
+                    self.val(formatNumber(number));
                 });
 
                 self.keydown(    
@@ -50,7 +58,7 @@
                                 case 106:
                                     event.preventDefault();
                                     calculateSoFar( number );
-                                    addToTicket(formatNumber(number, o.decimals), event.which);
+                                    addToTicket(formatNumber(number), event.which);
                                     LastOperator = event.which;
                                     self.val(""); 
                                     break;
@@ -72,9 +80,9 @@
                                 event.preventDefault();
                             }
                             calculateSoFar(number);
-                            addToTicket(formatNumber(number, o.decimals), "=");
-                            addToTicket(formatNumber(TotalSoFar, o.decimals), 0, "tot");
-                            self.val(formatNumber(TotalSoFar, o.decimals));
+                            addToTicket(formatNumber(number), "=");
+                            addToTicket(formatNumber(TotalSoFar), 0, "tot");
+                            self.val(formatNumber(TotalSoFar));
                             LastOperator = 0;
                         }
                     }
@@ -124,19 +132,12 @@
 
             function parseLocalFloat(num) {
                 if (!num) return 0;
-                if (options.useCommaAsDecimalMark) {
-                    return parseFloat((num.replace(/\./g, "").replace(/ /g, "").replace("$", "").replace(",", ".")));
-                }
-                return parseFloat(num.replace(/,/g, ""));
+                num = num.replace(conf.re, '').replace(conf.radix, '.');
+                return parseFloat(num)
             }
 
-            function formatNumber(n, c) {
-                var d = "."; var t = ","; var i; var j; var s;
-                if (options.useCommaAsDecimalMark) {
-                    d = ","; t = ".";
-                }
-                c = isNaN(c = Math.abs(c)) ? 2 : c, d = d == undefined ? "," : d, t = t == undefined ? "." : t, s = n < 0 ? "-" : "", i = parseInt(n = Math.abs(+n || 0).toFixed(c)) + "", j = (j = i.length) > 3 ? j % 3 : 0;
-                return s + (j ? i.substr(0, j) + t : "") + i.substr(j).replace(/(\d{3})(?=\d)/g, "$1" + t) + (c ? d + Math.abs(n - i).toFixed(c).slice(2) : "");
+            function formatNumber(num) {
+            	return options.numberFormat.format(num)
             };
             
 

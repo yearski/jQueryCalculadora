@@ -20,13 +20,20 @@ Options
 <ul>
     <li><code>decimals</code> Number of decimals to show in the ticket and in the result value. <i>Default is '2'</i>
     <li><code>useCommaAsDecimalMark</code> If true, use the comma to parse the numbers and to show the values. <i>Default is 'false'</i>
+    <li><code>numberFormat</code> Intl.NumberFormat() which can contain further formatting options. See: <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/NumberFormat">MDN: NumberFormat</a> for more. <i>Optional. Will default to 'US' if useCommaAsDecimalMark is provided and true, or 'FR' if useCommaAsDecimalMark is provided and false</i>
+    <li><code>parent_element</code> Parent element to attach the calculator "ticket", use to control visibility. <i>Default is <code>$("body")</code></i>
 </ul>
 
 
 Usage
 -------
-<code>
-        $(function () {
-            $("input").calculadora({decimals: 0, useCommaAsDecimalMark: false});
-        })
-</code>
+<pre><code>
+    $(function () {
+        $("input").calculadora({decimals: 0, useCommaAsDecimalMark: false});
+    })
+</code></pre>
+Or:
+<pre><code>
+    const nF = new Intl.NumberFormat('US', {style: 'decimal', maximumFractionDigits: 2, useGrouping: false});
+    $("input.calculator").calculadora({numberFormat: nF, parent_element: $('.modal-body')});
+</code></pre>
