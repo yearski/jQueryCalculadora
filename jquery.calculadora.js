@@ -1,5 +1,5 @@
 /*
- * jQuery Calculadora 0.5
+ * jQuery Calculadora 0.6
  * Copyright 2013, Eduardo Molteni
  *
 */
@@ -30,12 +30,12 @@
             
             return this.each(function() {
                 var self = $(this);
-                var LastOperator = 0;
+                var LastOperator = null;
                 var TotalSoFar = 0;
                 var TicketIsVisible = false;
 
                 self.blur(function (event) {
-                    LastOperator = 0;
+                    LastOperator = null;
                     ticketUl.html("");
                     ticket.hide();
                     TicketIsVisible = false;
@@ -48,72 +48,65 @@
                     function (event) {
                         var number = parseLocalFloat(self.val());
 
-                        // if there's a number in the input:
-                        if (number !== 0)
-                            switch (event.which) {
-                                // if the key is   -+/*:
-                                case 109:
-                                case 107:
-                                case 111:
-                                case 106:
-                                    event.preventDefault();
-                                    calculateSoFar( number );
-                                    addToTicket(formatNumber(number), event.which);
-                                    LastOperator = event.which;
-                                    self.val(""); 
-                                    break;
-                                case 75: //if the key is  'k'
-                                    event.preventDefault();
-                                    self.val(number * 1000);
-                                    break;
-                                case 77: //if the key is  'M'
-                                    event.preventDefault();
-                                    self.val(number * 1000000);
-                                    break;
-                                    break;
-                            }
-
-                        // si la tecla es enter o tab o =
-                        if (event.which == 13 || event.which == 9) {
-                            console.log(event.which);
-                            if (event.which == 13) {
+                        switch (event.key) {
+                            case '+':
+                            case '-':
+                            case '*':
+                            case '/':
                                 event.preventDefault();
-                            }
-                            calculateSoFar(number);
-                            addToTicket(formatNumber(number), "=");
-                            addToTicket(formatNumber(TotalSoFar), 0, "tot");
-                            self.val(formatNumber(TotalSoFar));
-                            LastOperator = 0;
-                        }
-                    }
-                );
-
-                self.keypress(
-                    function (event) {
-                        var number = parseLocalFloat(self.val());
-
-                        if (event.which == 37) {
-                            event.preventDefault();
-                            self.val(TotalSoFar * number / 100);
-                        }
+                                calculateSoFar( number );
+                                addToTicket(formatNumber(number), event.key);
+                                LastOperator = event.key;
+                                self.val(""); 
+                                break;
+                            case 'Enter':
+                            case '=':
+                            	event.preventDefault();		// allow default action for Tab key
+                            case 'Tab':
+                                calculateSoFar(number);
+                                addToTicket(formatNumber(number), "=");
+                                addToTicket(formatNumber(TotalSoFar), " ", "tot");
+                                self.val(formatNumber(TotalSoFar));
+                                LastOperator = null;
+                                self.change();
+                                break;
+                            case 'k':
+                                event.preventDefault();
+                                self.val(number * 1000);
+                                break;
+                            case 'M':
+                                event.preventDefault();
+                                self.val(number * 1000000);
+                                break;
+                            case 'm':
+                                event.preventDefault();
+                                if (number !== 0) self.val(number / 1000);
+                                break;
+                        };
                     }
                 );
 
                 function calculateSoFar(number) {
-                    if (LastOperator === 0) {
-                        TotalSoFar = number;
-                    }
-                    else {
-                        // prevent using eval
-                        if (LastOperator == 109) TotalSoFar = TotalSoFar - number;
-                        if (LastOperator == 107) TotalSoFar = TotalSoFar + number;
-                        if (LastOperator == 111 && number !== 0) TotalSoFar = TotalSoFar / number;
-                        if (LastOperator == 111 && number === 0) TotalSoFar = 0;
-                        if (LastOperator == 106) TotalSoFar = TotalSoFar * number;
-                    }
-                }
+                	switch (LastOperator) {
+                		case null:
+                			TotalSoFar = number;
+                			break;
+                		case '+':
+                			TotalSoFar = TotalSoFar + number;
+                			break;
+                		case '-':
+                			TotalSoFar = TotalSoFar - number;
+                			break;
+                		case '*':
+                			TotalSoFar = TotalSoFar * number;
+                			break;
+                		case '/':
+                			TotalSoFar = (number !== 0) ? TotalSoFar / number : 0;
+                			break;
+                	};
+                };
 
-                function addToTicket(text, which, liclass) {
+                function addToTicket(text, display_operator, liclass) {
                     var pos = self.offset();
                     if (!TicketIsVisible && pos) {
                         ticket.css('top', (pos.top - 15) + "px");
@@ -122,36 +115,23 @@
                         //ticket.show("slide", { direction: "up" }, 1000);
                         ticket.show();
                         TicketIsVisible = true;
-                    }
-                    ticketUl.append("<li class='" + liclass + "'><div class='op'>" + operatorForCode(which) + "</div><div class='num'>" + text + "</div></li>");
+                    };
+                    ticketUl.append("<li class='" + liclass + "'><div class='op'>" + display_operator + "</div><div class='num'>" + text + "</div></li>");
                     ticket.css('top', (pos.top - ticket.height()) + "px");
-                }
+                };
 
             });
-
 
             function parseLocalFloat(num) {
                 if (!num) return 0;
                 num = num.replace(conf.re, '').replace(conf.radix, '.');
                 return parseFloat(num)
-            }
+            };
 
             function formatNumber(num) {
             	return options.numberFormat.format(num)
             };
-            
-
-            function operatorForCode(whichKeyCode) {
-                if (whichKeyCode == 109) return("-");
-                if (whichKeyCode == 107) return ("+");
-                if (whichKeyCode == 111) return ("/");
-                if (whichKeyCode == 106) return ("*");
-                if (whichKeyCode == "=") return ("=");
-                return "";
-            }
-
         }
     });
-    
-})(jQuery);
 
+})(jQuery);
