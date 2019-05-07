@@ -26,19 +26,21 @@
         
             var ticket = $('<div id="calculadora" style="display: none; position: absolute"><ul></ul></div>');
             var ticketUl = ticket.find("ul");
+            
+            while($('#calculadora').length != 0) {
+            	$('#calculadora').remove();
+            };
             $(options.parent_element).append(ticket);
             
             return this.each(function() {
                 var self = $(this);
                 var LastOperator = null;
                 var TotalSoFar = 0;
-                var TicketIsVisible = false;
 
                 self.blur(function (event) {
                     LastOperator = null;
                     ticketUl.html("");
                     ticket.hide();
-                    TicketIsVisible = false;
 
                     var number = parseLocalFloat(self.val());
                     self.val(formatNumber(number));
@@ -107,17 +109,13 @@
                 };
 
                 function addToTicket(text, display_operator, liclass) {
-                    var pos = self.offset();
-                    if (!TicketIsVisible && pos) {
-                        ticket.css('top', (pos.top - 15) + "px");
-                        ticket.css('left', pos.left + "px");
+                    if (!ticket.is(":visible")) {
                         ticket.css('min-width', self.width() + "px");
-                        //ticket.show("slide", { direction: "up" }, 1000);
                         ticket.show();
-                        TicketIsVisible = true;
+                        ticket.offset({top: self.offset().top-15, left: self.offset().left});
                     };
                     ticketUl.append("<li class='" + liclass + "'><div class='op'>" + display_operator + "</div><div class='num'>" + text + "</div></li>");
-                    ticket.css('top', (pos.top - ticket.height()) + "px");
+                    ticket.offset({top: ticket.offset().top-15, left: ticket.offset().left});
                 };
 
             });
